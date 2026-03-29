@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
+import sqlite3
+from momentum import get_connection   # <-- Import your DB connection
 
 # -----------------------------
 # Task 1.3 — Habit Class
@@ -11,6 +13,22 @@ class Habit:
         self.category = category
         self.why = why
         self.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+# -----------------------------
+# Task 1.4 — Insert Habit into DB
+# -----------------------------
+def insert_habit_into_db(habit):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO habits (name, category, why, created_at)
+        VALUES (?, ?, ?, ?)
+    """, (habit.name, habit.category, habit.why, habit.created_at))
+
+    conn.commit()
+    conn.close()
 
 
 # -----------------------------
@@ -26,12 +44,21 @@ def save_habit():
         return
 
     new_habit = Habit(name, category, why)
-    print("Habit created:")
+
+    # Task 1.5 — Save to DB
+    insert_habit_into_db(new_habit)
+
+    print("Habit saved to database:")
     print("Name:", new_habit.name)
     print("Category:", new_habit.category)
     print("Why:", new_habit.why)
     print("Created at:", new_habit.created_at)
     print("----------------------------------")
+
+    # Clear fields after saving
+    name_entry.delete(0, tk.END)
+    category_var.set("")
+    why_entry.delete("1.0", tk.END)
 
 
 # Main window
